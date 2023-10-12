@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Form
 from typing import Optional
 from pydantic import BaseModel
+
 import requests
 
 app = FastAPI()
@@ -10,7 +11,7 @@ class HealthId(BaseModel):
 
 class Aadhaar(BaseModel):
     aadhaar : str
-
+    
 class Transaction(BaseModel):
     otp : str
     txnId : str
@@ -29,7 +30,17 @@ class Details(BaseModel):
     profilePhoto : str
     txnId : str
 
+class RegistrationDetails(BaseModel):
+    mobile : str 
+    aadhaar : str 
 
+class OneTimePassword(BaseModel):
+    otp : str 
+
+class TransactionId(BaseModel):
+    txnId : str
+
+    
 
 @app.post("/getAuthToken")          #API endpoint to get a bearer authorization token to use other apis
 def getAuthToken():
@@ -56,7 +67,7 @@ def sendHTTPRequest(url : str, data : dict):        #common http request method 
                 'Content-Type': 'application/json'
             }
     try:
-        authToken = getAuthToken()
+        # authToken = getAuthToken()
         
         response =  requests.post(url, headers=headers, json=data)
 
@@ -80,7 +91,7 @@ def existsByHealthId(healthId : HealthId):
 
 
 
-# Following are API enpoints used in registering a new user
+# Following are API endoints used in registering a new user
 @app.post("/generateOtp")
 def generateOtp(aadhaar : Aadhaar):
     url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/generateOtp"
@@ -133,6 +144,83 @@ def createHealthIdWithPreVerified(details : Details):
     
     response = sendHTTPRequest(url, data)
     return response
+
+    
+@app.post("/register")
+def registerNewUser(regDetails : RegistrationDetails):
+    aadhaarData = {"aadhaar" : regDetails.aadhaar}
+    a1 = Aadhaar(**aadhaarData)
+    generateOtpResponse = generateOtp(a1)
+    txnId = generateOtpResponse["txnId"]
+    return {"txnId" : txnId, "mobile" : regDetails.mobile}
+
+@app.post("/submitOtp")
+def submitOtp(mobile : str, txnId : str, otp : str = Form(...)):
+    otpData = {"otp" : otp, "txnId" : txnId}
+    t1 = Transaction(**otpData)
+    verifyOtpResponse = verifyOtp(t1)
+    txnId = verifyOtpResponse["txnId"]
+    mobileOtpData = {"mobile" : mobile, "txnId" : txnId}
+    m1 = MobileOTPTransaction(**mobileOtpData)
+    generateMobileOtpResponse = generateMobileOTP(m1)
+    txnId = generateMobileOtpResponse["txnId"]
+    return {"txnId" : txnId}
+
+@app.post("/verifySecondOtp")
+def verifySecondOtp(txnId : str, otp : str = Form(...)):
+    otpVerificationData = {"otp" : otp, "txnId" : txnId}
+    v1 = Transaction(**otpVerificationData)
+    verifyMobileOtpResponse = verifyMobileOTP(v1)
+    txnId = verifyMobileOtpResponse["txnId"]
+    return {"txnId" : txnId}
+
+@app.post("/submitRegDetails")
+def submitRegDetails(txnId : str,
+                    email : str = Form(...), 
+                    firstName : str = Form(...),
+                    healthId : str = Form(...), 
+                    lastName : str = Form(...), 
+                    middleName : str = Form(...), 
+                    password : str = Form(...), 
+                    profilePhoto : str = Form(...), 
+                    ):
+    createHealthIdData = {
+                            "email" : email, 
+                            "firstname" : firstName,
+                            "healthId" : healthId, 
+                            "lastname" : lastName, 
+                            "middleName" : middleName, 
+                            "password" : password, 
+                            "profilePhoto" : profilePhoto, 
+                            "txnId" : txnId
+                        }
+    
+    d1 = Details(**createHealthIdData)
+    createHealthIdResponse= createHealthIdWithPreVerified(d1)
+    return createHealthIdResponse
+    
+
+
+    
+    
+    
+     
+
+
+
+
+
+
+
+
+    
+
+
+    
+    
+
+
+
 
 
 
