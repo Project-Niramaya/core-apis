@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Form
+from fastapi import FastAPI, HTTPException, Form, File, UploadFile
 from typing import Optional
 from pydantic import BaseModel
 
@@ -30,7 +30,7 @@ class Details(BaseModel):
     lastName: str
     middleName : str
     password : str
-    profilePhoto : str
+    profilePhoto : UploadFile
     txnId : str
 
 class RegistrationDetails(BaseModel):
@@ -187,8 +187,14 @@ def submitRegDetails(txnId : str,
                     lastName : str = Form(...), 
                     middleName : str = Form(...), 
                     password : str = Form(...), 
-                    profilePhoto : str = Form(...), 
+                    profilePhoto : UploadFile = Form(...), 
                     ):
+    if profilePhoto.content_type != "image/jpeg" and profilePhoto.content_type != "image/png":
+        return {"error": "Only JPEG or PNG images are allowed."}
+
+    if profilePhoto.filename.endswith((".jpg", ".jpeg", ".png")):
+        return {"error": "File extension not allowed."}
+
     
     createHealthIdData = {
                             "email" : email,                    #bind the registration details obtained from the frontend as a pydantic data object
