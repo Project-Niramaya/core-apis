@@ -6,6 +6,14 @@ import requests
 
 app = FastAPI()                 #instantiate the FastAPI app
 
+app.add_middleware(            #cross origin compatibilty
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 #following are pydantic data model classes used for data validation and basic data structure used for data in transit in APIs
 
