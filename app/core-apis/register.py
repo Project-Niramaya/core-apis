@@ -1,25 +1,22 @@
 from fastapi import FastAPI, HTTPException, Form, File, UploadFile
 from starlette.middleware.cors import CORSMiddleware
-
-from ..models.registerDataModels import HealthId, Aadhaar, Transaction, TransactionId, OneTimePassword, MobileOTPTransaction, Details, RegistrationDetails
-
+from dotenv import load_dotenv
+import os
 import requests
 
-app = FastAPI()                 #instantiate the FastAPI app
+load_dotenv()
 
-app.add_middleware(            #cross origin compatibilty
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
+from ..models.registerDataModels import HealthId, Aadhaar, Transaction, TransactionId, OneTimePassword, MobileOTPTransaction, Details, RegistrationDetails
+from ...main import app
+
+clientId = os.getenv("CLIENT_ID")
+clientSecret = os.getenv("CLIENT_SECRET")
 
 @app.post("/getAuthToken")          #API endpoint to get a bearer authorization token to use other apis
 def getAuthToken():
     url = "https://dev.abdm.gov.in/gateway/v0.5/sessions"
-    data = {"clientId" : "SBX_004047", "clientSecret" : "cbfb6f2a-f0e7-485a-be7b-0de5f5c0b92a"}
+    data = {"clientId" : clientId, "clientSecret" : clientSecret}
 
     try:
         response = requests.post(url, json=data)

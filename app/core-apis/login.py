@@ -7,18 +7,7 @@ from fastapi import Form, FastAPI, HTTPException
 
 
 from ..models.loginDataModels import Transaction, OtpVerificationResponse, Login, LoginOtp
-
-
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
+from ...main import app
 
 txnid_store = {}
 token_store = {} # temp storage
