@@ -1,58 +1,12 @@
-from fastapi import FastAPI, HTTPException, Form, File, UploadFile
-from starlette.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-import os
-import requests
-
-load_dotenv()
-
+from fastapi import  Form , UploadFile, APIRouter
 
 from ..models.registerDataModels import HealthId, Aadhaar, Transaction, TransactionId, OneTimePassword, MobileOTPTransaction, Details, RegistrationDetails
-from ...main import app
+from .request_utils import sendHTTPRequest
 
-clientId = os.getenv("CLIENT_ID")
-clientSecret = os.getenv("CLIENT_SECRET")
+router = APIRouter()
 
-@app.post("/getAuthToken")          #API endpoint to get a bearer authorization token to use other apis
-def getAuthToken():
-    url = "https://dev.abdm.gov.in/gateway/v0.5/sessions"
-    data = {"clientId" : clientId, "clientSecret" : clientSecret}
-
-    try:
-        response = requests.post(url, json=data)
-        if response.status_code == 200:
-            return response.json()["accessToken"]
-            
-        else:
-            return response.json()
-        
-    except requests.RequestException as e:
-        raise HTTPException(status_code=500, detail = str(e))
-    
-
-
-def sendHTTPRequest(url : str, data : dict):        #common http request method for all apis
-    authToken = getAuthToken()
-    headers = {
-                'Authorization': 'Bearer ' + authToken,
-                'Content-Type': 'application/json'
-            }
-    try:
-        # authToken = getAuthToken()
-        
-        response =  requests.post(url, headers=headers, json=data)
-
-        if(response.status_code == 200):
-            return response.json()
-        else:
-            return response.json()
-        
-    except requests.RequestException as e:
-        raise HTTPException(status_code=500, detail = str(e))
-    
-
-
-@app.post("/existsByHealthId")                  #api endpoint to check if user exists in ABHA system
+#ABHA API endpoints
+@router.post("/existsByHealthId")                  #api endpoint to check if user exists in ABHA system
 def existsByHealthId(healthId : HealthId):
     url = "https://healthidsbx.abdm.gov.in/api/v1/search/existsByHealthId"
     data = {"healthId" : healthId.healthId}
@@ -63,7 +17,7 @@ def existsByHealthId(healthId : HealthId):
 
 
 # Following are API endoints for basic apis provided by ABHA sandbox for registration
-@app.post("/generateOtp")
+@router.post("/generateOtp")
 def generateOtp(aadhaar : Aadhaar):
     url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/generateOtp"
     data = {"aadhaar" : aadhaar.aadhaar}
@@ -72,7 +26,7 @@ def generateOtp(aadhaar : Aadhaar):
     return response
     
 
-@app.post("/verifyOtp")
+@router.post("/verifyOtp")
 def verifyOtp(transaction : Transaction):
     url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/verifyOTP"
     data = {"otp" : transaction.otp, "txnId" : transaction.txnId}
@@ -81,7 +35,7 @@ def verifyOtp(transaction : Transaction):
     return response
     
 
-@app.post("/generateMobileOTP")
+@router.post("/generateMobileOTP")
 def generateMobileOTP(mobileOTPTransaction : MobileOTPTransaction):
     url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/generateMobileOTP"
     data = {"mobile" : mobileOTPTransaction.mobile, "txnId" : mobileOTPTransaction.txnId}
@@ -90,7 +44,7 @@ def generateMobileOTP(mobileOTPTransaction : MobileOTPTransaction):
     return response
 
 
-@app.post("/verifyMobileOTP")
+@router.post("/verifyMobileOTP")
 def verifyMobileOTP(transaction : Transaction):
     url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/verifyMobileOTP"
     data = {"otp" : transaction.otp, "txnId" : transaction.txnId}
@@ -99,7 +53,7 @@ def verifyMobileOTP(transaction : Transaction):
     return response
 
 
-@app.post("/createHealthIdWithPreVerified")
+@router.post("/createHealthIdWithPreVerified")
 def createHealthIdWithPreVerified(details : Details):
     url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/createHealthIdWithPreVerified"
     data = {
@@ -119,7 +73,7 @@ def createHealthIdWithPreVerified(details : Details):
 
 #following api endpoints are hit to register new user with ABHA from the frontend. All initial data populated from forms. 
    
-@app.post("/register")
+@router.post("/register")
 def registerNewUser(aadhaar : str = Form(...), mobile : str = Form(...)): #takes the aadhaar and mobile no from the form
     aadhaarData = {"aadhaar" : aadhaar}
     a1 = Aadhaar(**aadhaarData)
@@ -127,7 +81,7 @@ def registerNewUser(aadhaar : str = Form(...), mobile : str = Form(...)): #takes
     txnId = generateOtpResponse["txnId"]
     return {"txnId" : txnId, "mobile" : mobile}     #return the transaction id to the frontend
 
-@app.post("/submitOtp")         #obtain otp received as sms from the frontend
+@router.post("/submitOtp")         #obtain otp received as sms from the frontend
 def submitOtp(mobile : str, txnId : str, otp : str = Form(...)):
     otpData = {"otp" : otp, "txnId" : txnId}
     t1 = Transaction(**otpData)         #bind the otp and the transaction id as a pydantic data model object to call verifyOtp
@@ -139,7 +93,7 @@ def submitOtp(mobile : str, txnId : str, otp : str = Form(...)):
     txnId = generateMobileOtpResponse["txnId"]
     return {"txnId" : txnId}                    #return the txnId obtained to the frontend
 
-@app.post("/verifySecondOtp")
+@router.post("/verifySecondOtp")
 def verifySecondOtp(txnId : str, otp : str = Form(...)):    #get the second otp received as sms from the frontend form
     otpVerificationData = {"otp" : otp, "txnId" : txnId}
     v1 = Transaction(**otpVerificationData)                 #bind the otp and txnId as pydantic data object to call verifyMobileOtp api
@@ -147,7 +101,7 @@ def verifySecondOtp(txnId : str, otp : str = Form(...)):    #get the second otp 
     txnId = verifyMobileOtpResponse["txnId"]
     return {"txnId" : txnId}                        #return the txnId obtained as response to the frontend
 
-@app.post("/submitRegDetails")                      #obtain all the basic details of the user for registration from the frontend form
+@router.post("/submitRegDetails")                      #obtain all the basic details of the user for registration from the frontend form
 def submitRegDetails(txnId : str,
                     email : str = Form(...), 
                     firstName : str = Form(...),

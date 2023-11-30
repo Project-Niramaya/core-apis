@@ -3,31 +3,17 @@ import requests
 from starlette.middleware.cors import CORSMiddleware
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
-from fastapi import Form, FastAPI, HTTPException
+from fastapi import Form, FastAPI, HTTPException, APIRouter
+from .register import sendHTTPRequest
 
 
 from ..models.loginDataModels import Transaction, OtpVerificationResponse, Login, LoginOtp
-from ...main import app
+
 
 txnid_store = {}
 token_store = {} # temp storage
 
-
-@app.post("/getAuthToken")  # API endpoint to get a bearer authorization token to use other apis
-def getAuthToken():
-    url = "https://dev.abdm.gov.in/gateway/v0.5/sessions"
-    data = {"clientId": "SBX_004047", "clientSecret": "cbfb6f2a-f0e7-485a-be7b-0de5f5c0b92a"}
-
-    try:
-        response = requests.post(url, json=data)
-        if response.status_code == 200:
-            return response.json()["accessToken"]
-
-        else:
-            return response.json()
-
-    except requests.RequestException as e:
-        raise HTTPException(status_code=500, detail=str(e))
+router = APIRouter()
 
 
 def getPublicKey():
@@ -38,30 +24,9 @@ def getPublicKey():
     return recipient_public_key
 
 
-def sendHTTPRequest(url: str, data: dict, headers: dict = None):  # common http request method for all apis
-    authToken = getAuthToken()
-    if headers is None:
-        headers = {}
-    headers.update({
-        'Authorization': 'Bearer ' + authToken,
-        'Content-Type': 'application/json'
-    })
-    try:
-        getAuthToken()
-
-        response = requests.post(url, headers=headers, json=data)
-
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return response.json()
-
-    except requests.RequestException as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 # Login APIs
-@app.post("/loginGenerateOtp")
+@router.post("/loginGenerateOtp")
 def loginGenerateOtp(login_otp: LoginOtp):
     url = "https://healthidsbx.abdm.gov.in/api/v2/registration/mobile/login/generateOtp"
     data = {"mobile": login_otp.mobile}
@@ -69,7 +34,7 @@ def loginGenerateOtp(login_otp: LoginOtp):
     return response
 
 
-@app.post("/loginVerifyOtp")
+@router.post("/loginVerifyOtp")
 def loginVerifyOtp(transaction: Transaction):
     url = "https://healthidsbx.abdm.gov.in/api/v2/registration/mobile/login/verifyOtp"
     otp_to_encrypt = transaction.otp
@@ -86,7 +51,7 @@ def loginVerifyOtp(transaction: Transaction):
     return response
 
 
-@app.post("/login")
+@router.post("/login")
 def login(login_info: Login):
     url = "https://healthidsbx.abdm.gov.in/api/v2/registration/mobile/login/userAuthorizedToken"
     data = {"healthId": login_info.healthId, "txnId": login_info.txnId}
@@ -101,7 +66,7 @@ def login(login_info: Login):
 
 # following apis are to hit to log in user through front-end
 
-@app.post("/loginentermobile")
+@router.post("/loginentermobile")
 def loginmobile(mobile: str = Form(...)):  # takes the mobile no from the form
     mobileData = {"mobile": mobile}
     m1 = LoginOtp(**mobileData)
@@ -112,7 +77,7 @@ def loginmobile(mobile: str = Form(...)):  # takes the mobile no from the form
     return {"txnId": txnId}
 
 
-@app.post("/loginenterotp")
+@router.post("/loginenterotp")
 def loginotp(txnId: str, otp: str = Form(...)):  # takes the otp from form and take the txnid from previous response and feed here
     # txnId = txnid_store.get("txnId")  # using a temporary storage
     otpVerificationData = {"otp": otp, "txnId": txnId}
@@ -123,7 +88,7 @@ def loginotp(txnId: str, otp: str = Form(...)):  # takes the otp from form and t
     return verifyMobileOtpResponse
 
 
-@app.post("/loginenterhid")
+@router.post("/loginenterhid")
 def loginhid(txnId : str, healthId: str = Form(...)):
     # txnId = txnid_store.get("txnId") # temp storage
     logindata = {"healthId": healthId, "txnId": txnId}

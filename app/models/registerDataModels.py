@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from fastapi import File, UploadFile
+from fastapi import UploadFile
 
 #following are pydantic data model classes used for data validation and basic data structure used for data in transit in user registration APIs
 
