@@ -1,12 +1,14 @@
+# utility APIs used in all API requests for getting AuthToken, and for sending HTTP requests
+
 import os
 import requests
 from fastapi import FastAPI, HTTPException , APIRouter
 from dotenv import load_dotenv
 
 
-load_dotenv()
+load_dotenv()   #load environment variables
 
-router = APIRouter()
+router = APIRouter()    #create instance of APIRouter
 
 clientId = os.getenv("CLIENT_ID")
 clientSecret = os.getenv("CLIENT_SECRET")

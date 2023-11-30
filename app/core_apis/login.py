@@ -13,7 +13,7 @@ from ..models.loginDataModels import Transaction, OtpVerificationResponse, Login
 txnid_store = {}
 token_store = {} # temp storage
 
-router = APIRouter()
+router = APIRouter()    #create instance of APIRouter
 
 
 def getPublicKey():

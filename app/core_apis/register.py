@@ -1,74 +1,9 @@
 from fastapi import  Form , UploadFile, APIRouter
-
-from ..models.registerDataModels import HealthId, Aadhaar, Transaction, TransactionId, OneTimePassword, MobileOTPTransaction, Details, RegistrationDetails
+from ..models.registerDataModels import *
 from .request_utils import sendHTTPRequest
+from core_apis.ABHA_endpoints.userRegistration import *
 
-router = APIRouter()
-
-#ABHA API endpoints
-@router.post("/existsByHealthId")                  #api endpoint to check if user exists in ABHA system
-def existsByHealthId(healthId : HealthId):
-    url = "https://healthidsbx.abdm.gov.in/api/v1/search/existsByHealthId"
-    data = {"healthId" : healthId.healthId}
-
-    response = sendHTTPRequest(url, data)
-    return response
-
-
-
-# Following are API endoints for basic apis provided by ABHA sandbox for registration
-@router.post("/generateOtp")
-def generateOtp(aadhaar : Aadhaar):
-    url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/generateOtp"
-    data = {"aadhaar" : aadhaar.aadhaar}
-
-    response = sendHTTPRequest(url, data)
-    return response
-    
-
-@router.post("/verifyOtp")
-def verifyOtp(transaction : Transaction):
-    url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/verifyOTP"
-    data = {"otp" : transaction.otp, "txnId" : transaction.txnId}
-
-    response = sendHTTPRequest(url, data)
-    return response
-    
-
-@router.post("/generateMobileOTP")
-def generateMobileOTP(mobileOTPTransaction : MobileOTPTransaction):
-    url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/generateMobileOTP"
-    data = {"mobile" : mobileOTPTransaction.mobile, "txnId" : mobileOTPTransaction.txnId}
-
-    response = sendHTTPRequest(url, data)
-    return response
-
-
-@router.post("/verifyMobileOTP")
-def verifyMobileOTP(transaction : Transaction):
-    url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/verifyMobileOTP"
-    data = {"otp" : transaction.otp, "txnId" : transaction.txnId}
-
-    response = sendHTTPRequest(url, data)
-    return response
-
-
-@router.post("/createHealthIdWithPreVerified")
-def createHealthIdWithPreVerified(details : Details):
-    url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/createHealthIdWithPreVerified"
-    data = {
-                details.email, 
-                details.firstName, 
-                details.healthId, 
-                details.lastName, 
-                details.middleName, 
-                details.password, 
-                details.profilePhoto, 
-                details.txnId
-            }
-    
-    response = sendHTTPRequest(url, data)
-    return response
+router = APIRouter()    #create instance of APIRouter
 
 
 #following api endpoints are hit to register new user with ABHA from the frontend. All initial data populated from forms. 
