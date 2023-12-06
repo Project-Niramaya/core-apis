@@ -36,3 +36,9 @@ class OneTimePassword(BaseModel):
 
 class TransactionId(BaseModel):
     txnId : str
+
+class Search(BaseModel):
+    mobile: str
+    year: str
+    name: str
+    gender: str
