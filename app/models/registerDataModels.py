@@ -42,3 +42,8 @@ class Search(BaseModel):
     year: str
     name: str
     gender: str
+
+class OtpSubmission(BaseModel):
+    mobile : str
+    txnId : str
+    otp : str

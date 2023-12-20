@@ -1,7 +1,7 @@
 from fastapi import  Form , UploadFile, APIRouter
 from ..models.registerDataModels import *
 from .request_utils import sendHTTPRequest
-from core_apis.ABHA_endpoints.userRegistration import *
+from .ABHA_endpoints.userRegistration import *
 
 router = APIRouter()    #create instance of APIRouter
 
@@ -9,28 +9,28 @@ router = APIRouter()    #create instance of APIRouter
 #following api endpoints are hit to register new user with ABHA from the frontend. All initial data populated from forms. 
    
 @router.post("/register")
-def registerNewUser(aadhaar : str = Form(...), mobile : str = Form(...)): #takes the aadhaar and mobile no from the form
-    aadhaarData = {"aadhaar" : aadhaar}
+async def registerNewUser(data : RegistrationDetails): #takes the aadhaar and mobile no from the form
+    aadhaarData = {"aadhaar" : data.aadhaar}
     a1 = Aadhaar(**aadhaarData)
     generateOtpResponse = generateOtp(a1)   #bind the data in a pydantic data model object to call generateOtp api to start a new transaction
     txnId = generateOtpResponse["txnId"]
-    return {"txnId" : txnId, "mobile" : mobile}     #return the transaction id to the frontend
+    return {"txnId" : txnId, "mobile" : data.mobile}     #return the transaction id to the frontend
 
 @router.post("/submitOtp")         #obtain otp received as sms from the frontend
-def submitOtp(mobile : str, txnId : str, otp : str = Form(...)):
-    otpData = {"otp" : otp, "txnId" : txnId}
+def submitOtp(data : OtpSubmission):
+    otpData = {"otp" : data.otp, "txnId" : data.txnId}
     t1 = Transaction(**otpData)         #bind the otp and the transaction id as a pydantic data model object to call verifyOtp
     verifyOtpResponse = verifyOtp(t1)
     txnId = verifyOtpResponse["txnId"]      #transaction id obtained again
-    mobileOtpData = {"mobile" : mobile, "txnId" : txnId}    #bind the txnId and the mobile no as a pydantic data object to call generateMobileOtp
+    mobileOtpData = {"mobile" : data.mobile, "txnId" : data.txnId}    #bind the txnId and the mobile no as a pydantic data object to call generateMobileOtp
     m1 = MobileOTPTransaction(**mobileOtpData)
     generateMobileOtpResponse = generateMobileOTP(m1)
     txnId = generateMobileOtpResponse["txnId"]
     return {"txnId" : txnId}                    #return the txnId obtained to the frontend
 
 @router.post("/verifySecondOtp")
-def verifySecondOtp(txnId : str, otp : str = Form(...)):    #get the second otp received as sms from the frontend form
-    otpVerificationData = {"otp" : otp, "txnId" : txnId}
+def verifySecondOtp(data : Transaction):    #get the second otp received as sms from the frontend form
+    otpVerificationData = {"otp" : data.otp, "txnId" : data.txnId}
     v1 = Transaction(**otpVerificationData)                 #bind the otp and txnId as pydantic data object to call verifyMobileOtp api
     verifyMobileOtpResponse = verifyMobileOTP(v1)
     txnId = verifyMobileOtpResponse["txnId"]
