@@ -4,7 +4,7 @@ from .login import router as loginRouter
 from .register import router as registerRouter
 from .request_utils import router as requestUtilsRouter
 from .ABHA_endpoints.search import router as searchRouter
-from .ABHA_endpoints.userRegistration import router as userRegisterRouter
+
 
 combined_router = APIRouter()   #create instance of APIRouter
 
@@ -14,4 +14,4 @@ combined_router.include_router(loginRouter)
 combined_router.include_router(registerRouter)
 combined_router.include_router(requestUtilsRouter)
 combined_router.include_router(searchRouter)
-combined_router.include_router(userRegisterRouter)
+

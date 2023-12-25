@@ -1,6 +1,6 @@
 # utility APIs used in all API requests for getting AuthToken, and for sending HTTP requests
 
-import os
+import os, logging
 import requests
 from fastapi import FastAPI, HTTPException , APIRouter
 from dotenv import load_dotenv
@@ -24,6 +24,8 @@ def getAuthToken():
             return response.json()["accessToken"]
             
         else:
+            logging.debug("Error in Generating token")
+            logging.debug(response)
             return response.json()
         
     except requests.RequestException as e:
@@ -39,12 +41,13 @@ def sendHTTPRequest(url : str, data : dict):        #common http request method 
             }
     try:
         # authToken = getAuthToken()
-        
         response =  requests.post(url, headers=headers, json=data)
 
         if(response.status_code == 200):
             return response.json()
         else:
+            logging.debug("Error in HTTP request")
+            logging.debug(response)
             return response.json()
         
     except requests.RequestException as e:
