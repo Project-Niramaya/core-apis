@@ -2,10 +2,12 @@ from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from app.core_apis.combined_router import combined_router
 
-import uvicorn
+import uvicorn, logging
 
 
 app = FastAPI()     #create a FastAPI app instance
+
+logging.basicConfig(level=logging.DEBUG)
 
 # CORS middleware configuration
 origins = [

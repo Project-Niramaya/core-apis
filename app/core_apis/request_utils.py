@@ -5,7 +5,7 @@ import requests
 from fastapi import FastAPI, HTTPException , APIRouter
 from dotenv import load_dotenv
 
-
+logging.basicConfig(level=logging.DEBUG)
 load_dotenv()   #load environment variables
 
 router = APIRouter()    #create instance of APIRouter

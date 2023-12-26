@@ -1,7 +1,7 @@
 from ...models.registerDataModels import *
 from ..request_utils import sendHTTPRequest
 import logging
-
+logging.basicConfig(level=logging.DEBUG)
 
 # Following are API endoints for basic apis provided by ABHA sandbox for registration
 #these endpoints are used in user registration logic in register.py

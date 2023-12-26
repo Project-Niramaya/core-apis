@@ -4,6 +4,7 @@ import logging
 
 
 #following are pydantic data model classes used for data validation and basic data structure used for data in transit in user registration APIs
+logging.basicConfig(level=logging.DEBUG)
 
 class AadhaarValidator:
     @validator('aadhaar')
@@ -49,8 +50,9 @@ class Transaction(BaseModel, OtpValidator):
 class MobileOTPTransaction(BaseModel, MobileValidator):
     txnId : str
     mobile : str
-    def __init__(self, txnId, mobile):
-        pass
+    
+   
+        
 
 class Details(BaseModel):
     email : EmailStr

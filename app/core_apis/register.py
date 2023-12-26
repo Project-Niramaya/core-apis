@@ -7,7 +7,7 @@ import logging
 
 router = APIRouter()    #create instance of APIRouter
 
-#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 reg = RegistrationService()
 #following api endpoints are hit to register new user with ABHA from the frontend. All initial data populated from forms. 
@@ -22,7 +22,7 @@ async def registerNewUser(data : RegistrationDetails): #takes the aadhaar and mo
         txnId = generateOtpResponse["txnId"]
         logging.debug("Otp generation successful, txnId returned")
         logging.debug(txnId)
-        return {"res" : MobileOTPTransaction(txnId, data.mobile)}
+        return {"res" : MobileOTPTransaction(txnId=txnId, mobile=data.mobile)}
     
     except ValueError as e:
         logging.debug("ValueError occurred in generateOtp") 
