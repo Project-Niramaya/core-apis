@@ -26,7 +26,7 @@ def searchByHealthId(healthId: HealthId):
     return response
 
 
-@router.post("/searchByHealthId")  # api endpoint to check if user exists in ABHA system
+@router.post("/searchByMobile")  # api endpoint to check if user exists in ABHA system
 def searchByMobile(search: Search):
     url = "https://healthidsbx.abdm.gov.in/api/v1/search/searchByMobile"
     data = {"gender": search.gender, "mobile": search.mobile, "name": search.mobile, "yearOfBirth": search.year}

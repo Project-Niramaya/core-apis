@@ -15,7 +15,7 @@ clientSecret = os.getenv("CLIENT_SECRET")
 
 @router.post("/getAuthToken")          #API endpoint to get a bearer authorization token to use other apis
 def getAuthToken():
-    url = "https://dev.abdm.gov.in/gateway/v0.5/sessions"
+    url = os.getenv("GET_AUTH_TOKEN")
     data = {"clientId" : clientId, "clientSecret" : clientSecret}
 
     try:

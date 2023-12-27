@@ -1,6 +1,6 @@
 from ...models.registerDataModels import *
 from ..request_utils import sendHTTPRequest
-import logging
+import logging, os
 logging.basicConfig(level=logging.DEBUG)
 
 # Following are API endoints for basic apis provided by ABHA sandbox for registration
@@ -10,7 +10,7 @@ class RegistrationService:
 
     def generateOtp(self, aadhaar : Aadhaar):
         logging.debug("generateOtp called")
-        url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/generateOtp"
+        url = os.getenv("GENERATE_OTP")
         data = {"aadhaar" : aadhaar.aadhaar}
 
         response = sendHTTPRequest(url, data)
@@ -18,7 +18,7 @@ class RegistrationService:
     
 
     def verifyOtp(self, transaction : Transaction):
-        url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/verifyOTP"
+        url = os.getenv("VERIFY_OTP")
         data = {"otp" : transaction.otp, "txnId" : transaction.txnId}
 
         response = sendHTTPRequest(url, data)
@@ -26,7 +26,7 @@ class RegistrationService:
         
 
     def generateMobileOTP(self, mobileOTPTransaction : MobileOTPTransaction):
-        url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/generateMobileOTP"
+        url = os.getenv("GENERATE_MOBILE_OTP")
         data = {"mobile" : mobileOTPTransaction.mobile, "txnId" : mobileOTPTransaction.txnId}
 
         response = sendHTTPRequest(url, data)
@@ -34,7 +34,7 @@ class RegistrationService:
 
 
     def verifyMobileOTP(self, transaction : Transaction):
-        url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/verifyMobileOTP"
+        url = os.getenv("VERIFY_MOBILE_OTP")
         data = {"otp" : transaction.otp, "txnId" : transaction.txnId}
 
         response = sendHTTPRequest(url, data)
@@ -42,7 +42,7 @@ class RegistrationService:
 
 
     def createHealthIdWithPreVerified(self, details : Details):
-        url = "https://healthidsbx.abdm.gov.in/api/v1/registration/aadhaar/createHealthIdWithPreVerified"
+        url = os.getenv("CREATE_HEALTH_ID")
         data = {
                     details.email, 
                     details.firstName, 
